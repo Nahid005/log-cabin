@@ -1,3 +1,8 @@
+import { CiCalendarDate } from "react-icons/ci";
+import { FaLaptopHouse, FaRegUser } from "react-icons/fa";
+import { IoSettingsOutline } from "react-icons/io5";
+import { RiHomeWifiLine } from "react-icons/ri";
+import { NavLink } from "react-router-dom";
 import styled from "styled-components";
 
 const NavList = styled.ul`
@@ -6,7 +11,7 @@ const NavList = styled.ul`
   gap: 0.8rem;
 `;
 
-const Link = styled.a`
+const Link = styled(NavLink)`
   &:link,
   &:visited {
     display: flex;
@@ -44,3 +49,44 @@ const Link = styled.a`
     color: var(--color-brand-600);
   }
 `;
+ 
+function MainNav() {
+  return (
+    <nav>
+      <NavList>
+        <li>
+          <Link to="dashboard">
+            <RiHomeWifiLine />
+            <span>Home</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="booking"> 
+            <CiCalendarDate />
+            <span>Booking</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="cabins">
+            <FaLaptopHouse />
+            <span>Cabins</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="users">
+            <FaRegUser />
+            <span>Users</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="settings">
+            <IoSettingsOutline />
+            <span>Settings</span>
+          </Link>
+        </li>
+      </NavList>
+    </nav>
+  )
+}
+
+export default MainNav;
