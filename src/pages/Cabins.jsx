@@ -1,19 +1,27 @@
-import { useEffect } from "react";
 import Heading from "../ui/Heading";
 import Row from "../ui/Row";
-import { getCabins } from "../services/apiCabins";
+import CabinTable from "../features/cabins/CabinTable";
+import Button from "../ui/Button";
+import { useState } from "react";
+import CreateCabinForm from "../features/cabins/CreateCabinForm";
 
 function Cabins() {
 
-  useEffect(() => {
-    getCabins().then(data => console.log(data));
-  },[])
+  const [isShow, setIsShow] = useState();
 
   return (
-    <Row type="horizontal">
-      <Heading as="h1">All cabins</Heading>
-      <p>TEST</p>
-    </Row>
+    <>
+      <Row type="horizontal">
+        <Heading as="h1">All cabins</Heading>
+      </Row>
+      <Row type="vertical">
+        <CabinTable />
+        <Button variation="primary" size ="medium" onClick={() => setIsShow(!isShow)}> Add to cabins </Button>
+        {
+          isShow && <CreateCabinForm setIsShow={setIsShow} />
+        }
+      </Row>
+    </>
   );
 }
 

@@ -1,10 +1,18 @@
 import styled from "styled-components";
-
+import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
 import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Spinner from "../../ui/Spinner";
+import Errors from "../../ui/Error";
+import { createCabin } from "../../services/apiCabins";
+
+
+
 
 const FormRow = styled.div`
   display: grid;
@@ -42,32 +50,88 @@ const Error = styled.span`
   color: var(--color-red-700);
 `;
 
-function CreateCabinForm() {
+function CreateCabinForm({setIsShow}) {
+  const {register, handleSubmit, reset, formState, getValues} = useForm();
+  const queryClient = useQueryClient();
+  const {errors} = formState;
+
+  const {isLoading, isError, mutate} = useMutation({
+    mutationFn: (newCabin) => createCabin(newCabin),
+    onSuccess: () => {
+      toast.success("New cabin successfully created");
+      queryClient.invalidateQueries({
+        queryKey: ["cabins"]
+      });
+      reset();
+      setIsShow(false)
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
+
+  function onSubmit(data) {
+    mutate(data)
+  }
+
+  function onError(errors) {
+    console.log(errors)
+  }
+
+  if(isLoading) return <Spinner />
+
   return (
-    <Form>
+    <Form onSubmit={handleSubmit(onSubmit, onError)}>
       <FormRow>
         <Label htmlFor="name">Cabin name</Label>
-        <Input type="text" id="name" />
+        <Input type="text" id="name" {...register("name", {
+          required: "This field is required",
+          min: {
+            value: 3,
+            message: "Enter min 3 character"
+          }
+        })} />
+        {
+          errors?.name?.message && <Errors>{errors.name.message}</Errors>
+        }
       </FormRow>
 
       <FormRow>
         <Label htmlFor="maxCapacity">Maximum capacity</Label>
-        <Input type="number" id="maxCapacity" />
+        <Input type="number" id="maxCapacity" {...register("maxCapacity", {
+          required: "Required"
+        })} />
+        {
+          errors?.maxCapacity?.message && <Errors>{errors.maxCapacity.message}</Errors>
+        }
       </FormRow>
 
       <FormRow>
         <Label htmlFor="regularPrice">Regular price</Label>
-        <Input type="number" id="regularPrice" />
+        <Input type="number" id="regularPrice" {...register("regularPrice", {
+          required: "Required"
+        })} />
+        {
+          errors?.regularPrice?.message && <Errors>{errors.regularPrice.message}</Errors>
+        }
       </FormRow>
 
       <FormRow>
         <Label htmlFor="discount">Discount</Label>
-        <Input type="number" id="discount" defaultValue={0} />
+        <Input type="number" id="discount" defaultValue={0} {...register("discount", {
+          validate: (value) => value <= getValues().regularPrice || "Discount price greater then regular price"
+        })} />
+        {
+          errors?.discount?.message && <Errors>{errors.discount.message}</Errors>
+        }
       </FormRow>
 
       <FormRow>
         <Label htmlFor="description">Description for website</Label>
-        <Textarea type="number" id="description" defaultValue="" />
+        <Textarea type="number" id="description" defaultValue="" {...register("description")} />
+        {
+          errors?.description?.message && <Errors>{errors.description.message}</Errors>
+        }
       </FormRow>
 
       <FormRow>
@@ -77,10 +141,10 @@ function CreateCabinForm() {
 
       <FormRow>
         {/* type is an HTML attribute! */}
-        <Button variation="secondary" type="reset">
+        <Button variation="secondary" size="medium" type="reset">
           Cancel
         </Button>
-        <Button>Edit cabin</Button>
+        <Button variation="primary" size="medium" type="submit">Add cabin</Button>
       </FormRow>
     </Form>
   );
