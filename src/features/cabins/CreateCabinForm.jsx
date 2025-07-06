@@ -1,4 +1,3 @@
-import styled from "styled-components";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import Input from "../../ui/Input";
@@ -8,55 +7,21 @@ import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Spinner from "../../ui/Spinner";
-import Errors from "../../ui/Error";
-import { createCabin } from "../../services/apiCabins";
+import { createEditCabin } from "../../services/apiCabins";
+import FormRow from "../../ui/FormRow";
 
 
+function CreateCabinForm({setIsShow, cabinData = {}}) {
+  const {id: editId, ...editValues} = cabinData;
+  const {register, handleSubmit, reset, formState, getValues} = useForm({
+    defaultValues: editId ? editValues : {}
+  });
 
-
-const FormRow = styled.div`
-  display: grid;
-  align-items: center;
-  grid-template-columns: 24rem 1fr 1.2fr;
-  gap: 2.4rem;
-
-  padding: 1.2rem 0;
-
-  &:first-child {
-    padding-top: 0;
-  }
-
-  &:last-child {
-    padding-bottom: 0;
-  }
-
-  &:not(:last-child) {
-    border-bottom: 1px solid var(--color-grey-100);
-  }
-
-  &:has(button) {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1.2rem;
-  }
-`;
-
-const Label = styled.label`
-  font-weight: 500;
-`;
-
-const Error = styled.span`
-  font-size: 1.4rem;
-  color: var(--color-red-700);
-`;
-
-function CreateCabinForm({setIsShow}) {
-  const {register, handleSubmit, reset, formState, getValues} = useForm();
   const queryClient = useQueryClient();
   const {errors} = formState;
 
-  const {isLoading, isError, mutate} = useMutation({
-    mutationFn: (newCabin) => createCabin(newCabin),
+  const {isLoading: loadingCreateCabin, mutate: createCabinMutate} = useMutation({
+    mutationFn: (newCabin) => createEditCabin(newCabin),
     onSuccess: () => {
       toast.success("New cabin successfully created");
       queryClient.invalidateQueries({
@@ -70,20 +35,37 @@ function CreateCabinForm({setIsShow}) {
     }
   });
 
+  const {isLoading: loadingEditCabin, mutate: editCabinMutate} = useMutation({
+    mutationFn: ({newCabinData, id}) => createEditCabin(newCabinData, id),
+    onSuccess: () => {
+      toast.success("Cabin update successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["cabins"]
+      });
+      reset();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
+
   function onSubmit(data) {
-    mutate(data)
+    const image = typeof data.image === "string" ? data.image : data.image[0];
+
+    createCabinMutate({...data, image})
+    editCabinMutate({newCabinData: {...data, image}, id: editId})
   }
 
   function onError(errors) {
     console.log(errors)
   }
 
-  if(isLoading) return <Spinner />
+  if(loadingCreateCabin || loadingEditCabin) return <Spinner />
 
   return (
     <Form onSubmit={handleSubmit(onSubmit, onError)}>
-      <FormRow>
-        <Label htmlFor="name">Cabin name</Label>
+
+      <FormRow label="Cabin name" errors={errors?.name?.message}>
         <Input type="text" id="name" {...register("name", {
           required: "This field is required",
           min: {
@@ -91,52 +73,34 @@ function CreateCabinForm({setIsShow}) {
             message: "Enter min 3 character"
           }
         })} />
-        {
-          errors?.name?.message && <Errors>{errors.name.message}</Errors>
-        }
       </FormRow>
 
-      <FormRow>
-        <Label htmlFor="maxCapacity">Maximum capacity</Label>
+      <FormRow label="Maximum capacity" errors={errors?.maxCapacity?.message}>
         <Input type="number" id="maxCapacity" {...register("maxCapacity", {
           required: "Required"
         })} />
-        {
-          errors?.maxCapacity?.message && <Errors>{errors.maxCapacity.message}</Errors>
-        }
       </FormRow>
 
-      <FormRow>
-        <Label htmlFor="regularPrice">Regular price</Label>
+      <FormRow label="Regular price" errors={errors?.regularPrice?.message}>
         <Input type="number" id="regularPrice" {...register("regularPrice", {
           required: "Required"
         })} />
-        {
-          errors?.regularPrice?.message && <Errors>{errors.regularPrice.message}</Errors>
-        }
       </FormRow>
 
-      <FormRow>
-        <Label htmlFor="discount">Discount</Label>
+      <FormRow label="Discount" errors={errors?.discount?.message}>
         <Input type="number" id="discount" defaultValue={0} {...register("discount", {
           validate: (value) => value <= getValues().regularPrice || "Discount price greater then regular price"
         })} />
-        {
-          errors?.discount?.message && <Errors>{errors.discount.message}</Errors>
-        }
       </FormRow>
 
-      <FormRow>
-        <Label htmlFor="description">Description for website</Label>
-        <Textarea type="number" id="description" defaultValue="" {...register("description")} />
-        {
-          errors?.description?.message && <Errors>{errors.description.message}</Errors>
-        }
+      <FormRow label="Description for website" errors={errors?.description?.message}>
+      <Textarea type="number" id="description" defaultValue="" {...register("description")} />
       </FormRow>
 
-      <FormRow>
-        <Label htmlFor="image">Cabin photo</Label>
-        <FileInput id="image" accept="image/*" />
+      <FormRow label="Cabin photo">
+        <FileInput id="image" accept="image/*" {...register("image", {
+          required: editId ? false : "Cabins images is required"
+        })} />
       </FormRow>
 
       <FormRow>
@@ -144,7 +108,7 @@ function CreateCabinForm({setIsShow}) {
         <Button variation="secondary" size="medium" type="reset">
           Cancel
         </Button>
-        <Button variation="primary" size="medium" type="submit">Add cabin</Button>
+        <Button variation="primary" size="medium" type="submit">{editId ? "Edit Cabin" : "Add cabin"}</Button>
       </FormRow>
     </Form>
   );
