@@ -1,59 +1,31 @@
 import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
+
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
 import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Spinner from "../../ui/Spinner";
-import { createEditCabin } from "../../services/apiCabins";
 import FormRow from "../../ui/FormRow";
+import { useCreateCabins } from "./useCreateCabins";
+import { useUpdateCabins } from "./useUpdateCabins";
 
 
 function CreateCabinForm({setIsShow, cabinData = {}}) {
+  const {loadingCreateCabin, createCabinMutate} = useCreateCabins()
+  const {loadingEditCabin, editCabinMutate} = useUpdateCabins()
+
   const {id: editId, ...editValues} = cabinData;
   const {register, handleSubmit, reset, formState, getValues} = useForm({
     defaultValues: editId ? editValues : {}
   });
-
-  const queryClient = useQueryClient();
   const {errors} = formState;
-
-  const {isLoading: loadingCreateCabin, mutate: createCabinMutate} = useMutation({
-    mutationFn: (newCabin) => createEditCabin(newCabin),
-    onSuccess: () => {
-      toast.success("New cabin successfully created");
-      queryClient.invalidateQueries({
-        queryKey: ["cabins"]
-      });
-      reset();
-      setIsShow(false)
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    }
-  });
-
-  const {isLoading: loadingEditCabin, mutate: editCabinMutate} = useMutation({
-    mutationFn: ({newCabinData, id}) => createEditCabin(newCabinData, id),
-    onSuccess: () => {
-      toast.success("Cabin update successfully");
-      queryClient.invalidateQueries({
-        queryKey: ["cabins"]
-      });
-      reset();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    }
-  });
 
   function onSubmit(data) {
     const image = typeof data.image === "string" ? data.image : data.image[0];
 
-    createCabinMutate({...data, image})
-    editCabinMutate({newCabinData: {...data, image}, id: editId})
+    if(editId) editCabinMutate({newCabinData: {...data, image}, id: editId})
+    else createCabinMutate({...data, image})
   }
 
   function onError(errors) {
@@ -67,11 +39,7 @@ function CreateCabinForm({setIsShow, cabinData = {}}) {
 
       <FormRow label="Cabin name" errors={errors?.name?.message}>
         <Input type="text" id="name" {...register("name", {
-          required: "This field is required",
-          min: {
-            value: 3,
-            message: "Enter min 3 character"
-          }
+          required: "This field is required"
         })} />
       </FormRow>
 
