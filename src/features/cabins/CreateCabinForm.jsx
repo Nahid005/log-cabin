@@ -11,7 +11,7 @@ import { useCreateCabins } from "./useCreateCabins";
 import { useUpdateCabins } from "./useUpdateCabins";
 
 
-function CreateCabinForm({setIsShow, cabinData = {}}) {
+function CreateCabinForm({cabinData = {}, onCloseModal}) {
   const {loadingCreateCabin, createCabinMutate} = useCreateCabins()
   const {loadingEditCabin, editCabinMutate} = useUpdateCabins()
 
@@ -24,8 +24,18 @@ function CreateCabinForm({setIsShow, cabinData = {}}) {
   function onSubmit(data) {
     const image = typeof data.image === "string" ? data.image : data.image[0];
 
-    if(editId) editCabinMutate({newCabinData: {...data, image}, id: editId})
-    else createCabinMutate({...data, image})
+    if(editId) editCabinMutate({newCabinData: {...data, image}, id: editId}, {
+      onSuccess: () => {
+        reset();
+        onCloseModal();
+      }
+    })
+    else createCabinMutate({...data, image}, {
+      onSuccess: () => {
+        reset();
+        onCloseModal();
+      }
+    })
   }
 
   function onError(errors) {
@@ -73,7 +83,7 @@ function CreateCabinForm({setIsShow, cabinData = {}}) {
 
       <FormRow>
         {/* type is an HTML attribute! */}
-        <Button variation="secondary" size="medium" type="reset">
+        <Button variation="secondary" size="medium" type="reset" onClick={onCloseModal}>
           Cancel
         </Button>
         <Button variation="primary" size="medium" type="submit">{editId ? "Edit Cabin" : "Add cabin"}</Button>

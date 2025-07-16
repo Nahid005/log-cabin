@@ -4,6 +4,8 @@ import { useState } from "react";
 import CreateCabinForm from "./CreateCabinForm";
 import { useDeleteCabins } from "./useDeleteCabins";
 import { useCreateCabins } from "./useCreateCabins";
+import Modal from "../../ui/Modal";
+import ConfirmDelete from "../../ui/ConfirmDelete";
 
 const TableRow = styled.div`
   display: grid;
@@ -68,14 +70,31 @@ function CabinRow({cabin}) {
         <Cabin>{name}</Cabin>
         <div>{maxCapacity}</div>
         <Price>{formatCurrency(regularPrice)}</Price>
-        <Discount>{discount}</Discount>
+        <Discount>{discount ? discount : <span>--</span>}</Discount>
         <div>
           <button disabled={loadingCreateCabin} onClick={handleDuplicate}>duplicate</button>
-          <button onClick={()=> setShowEditButton(!showEditButton)}>Edit</button>
-          <button onClick={() => mutate(id)}>Delete</button>
+          <Modal>
+            <Modal.Open opens="edit">
+              <button >Edit</button>
+            </Modal.Open>
+            <Modal.Window name="edit">
+              <CreateCabinForm cabinData={cabin} />
+            </Modal.Window>
+          </Modal>
+
+          <Modal>
+            <Modal.Open opens="delete">
+              <button>Delete</button>
+            </Modal.Open>
+            <Modal.Window name="delete">
+              <ConfirmDelete 
+                resourceName="cabins"
+                onConfirm={() => mutate(id)}
+              />
+            </Modal.Window>
+          </Modal>
         </div>
       </TableRow>
-      {showEditButton && <CreateCabinForm cabinData={cabin} />}
     </>
   )
 }

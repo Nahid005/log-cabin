@@ -1,4 +1,9 @@
 import styled from "styled-components";
+import { LiaTimesSolid } from "react-icons/lia";
+import { createPortal } from "react-dom";
+import { cloneElement, createContext, useContext, useState } from "react";
+import useModalCloseOutsideClick from "../hooks/useModalCloseOutsideClick";
+
 
 const StyledModal = styled.div`
   position: fixed;
@@ -48,3 +53,45 @@ const Button = styled.button`
     color: var(--color-grey-500);
   }
 `;
+
+const ModalContext = createContext();
+
+function Modal ({children}) {
+  const [openName, setOpenName] = useState("")
+
+  const close = () => setOpenName("")
+  const open = (name) => setOpenName(name);
+
+  return <ModalContext.Provider value={{openName, close, open }}>
+    {children}
+  </ModalContext.Provider>
+}
+
+function Open({children, opens: openWindowName}) {
+  const {open} = useContext(ModalContext);
+
+  return cloneElement(children, {onClick: () => open(openWindowName)})
+}
+
+function Window({children, name}) {
+  let {openName, close} = useContext(ModalContext);
+  const ref = useModalCloseOutsideClick(close);
+
+  if(name !== openName) return null;
+
+  return createPortal(
+    <Overlay>
+      <StyledModal ref={ref}>
+        <Button onClick={close}><LiaTimesSolid /></Button>
+        <div>{cloneElement(children, {onCloseModal: close})}</div>
+      </StyledModal>
+    </Overlay>,
+    
+    document.body
+  )
+}
+
+Modal.Open = Open;
+Modal.Window = Window;
+
+export default Modal

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <style>
+        .cercle {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            border: 1px solid #222;
+            border-radius: 50%;
+        }
+
+        span {
+            
+        }
+    </style>
+
+    <button id="btn"> Click me. </button>
+
+    <div class="box">
+<span>Hello</span>
+    <span>Hi</span>
+    </div>
+
+
+    <script>
+
+        const position = []
+
+        document.addEventListener("click", (e) => {
+            
+            const cercle = document.querySelectorAll?.('.cercle')
+            
+            createCercle(e);
+
+            if(cercle.length > 2) {
+                cercle.forEach(list => list.remove());
+
+                console.log(position)
+
+                createCercle(e);
+            }
+
+        })
+
+        function createCercle(e, cercle) {
+
+            console.log(cercle)
+
+            const x = e.clientX;
+            const y = e.clientY;
+            
+            const div = document.createElement("div");
+            div.className = "cercle";
+
+            div.style.top = y - 50 + "px";
+            div.style.left = x - 50 + "px";
+
+            document.body.appendChild(div);
+
+            const divPosition = div.getBoundingClientRect();
+
+            position.push({y: divPosition.top, x: divPosition.left});
+        }
+
+    </script>
+</body>
+</html>
