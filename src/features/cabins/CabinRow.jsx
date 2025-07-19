@@ -1,23 +1,16 @@
 import styled from "styled-components";
+import { CiEdit } from "react-icons/ci";
+import { MdDeleteOutline } from "react-icons/md";
+import { FaRegCopy } from "react-icons/fa";
+
 import { formatCurrency } from "../../utils/helpers";
-import { useState } from "react";
 import CreateCabinForm from "./CreateCabinForm";
 import { useDeleteCabins } from "./useDeleteCabins";
 import { useCreateCabins } from "./useCreateCabins";
 import Modal from "../../ui/Modal";
 import ConfirmDelete from "../../ui/ConfirmDelete";
-
-const TableRow = styled.div`
-  display: grid;
-  grid-template-columns: 0.6fr 1.8fr 2.2fr 1fr 1fr 1fr;
-  column-gap: 2.4rem;
-  align-items: center;
-  padding: 1.4rem 2.4rem;
-
-  &:not(:last-child) {
-    border-bottom: 1px solid var(--color-grey-100);
-  }
-`;
+import Table from "../../ui/Table";
+import Menus from "../../ui/Menus"
 
 const Img = styled.img`
   display: block;
@@ -47,12 +40,11 @@ const Discount = styled.div`
 `;
 
 function CabinRow({cabin}) {
-  const [showEditButton, setShowEditButton] = useState(false);
   const {mutate} = useDeleteCabins();
   const {loadingCreateCabin, createCabinMutate} = useCreateCabins();
 
   const {id, name, image, maxCapacity, regularPrice, discount} = cabin;
-  
+
   function handleDuplicate() {
     createCabinMutate({
       name: `Copy of ${name} cabins`,
@@ -65,36 +57,50 @@ function CabinRow({cabin}) {
 
   return (
     <>
-      <TableRow>
+      <Table.Row>
         <Img src={image} />
         <Cabin>{name}</Cabin>
         <div>{maxCapacity}</div>
         <Price>{formatCurrency(regularPrice)}</Price>
         <Discount>{discount ? discount : <span>--</span>}</Discount>
         <div>
-          <button disabled={loadingCreateCabin} onClick={handleDuplicate}>duplicate</button>
           <Modal>
-            <Modal.Open opens="edit">
-              <button >Edit</button>
-            </Modal.Open>
-            <Modal.Window name="edit">
+            <Menus.Menu>
+              <Menus.Toggle id={id} />
+              <Menus.List id={id}>
+                <Menus.Button icon={<FaRegCopy />} onClick={handleDuplicate}>
+                  Duplicate
+                </Menus.Button>
+                
+                <Modal.Open opens="edit">
+                  <Menus.Button icon={<CiEdit/>}>Edit</Menus.Button>
+                </Modal.Open>
+
+                <Modal.Open opens="delete">
+                  <Menus.Button icon={<MdDeleteOutline/>}>Delete</Menus.Button>
+                </Modal.Open>
+
+              </Menus.List>
+
+
+<Modal.Window name="edit">
               <CreateCabinForm cabinData={cabin} />
             </Modal.Window>
-          </Modal>
-
-          <Modal>
-            <Modal.Open opens="delete">
-              <button>Delete</button>
-            </Modal.Open>
-            <Modal.Window name="delete">
+<Modal.Window name="delete">
               <ConfirmDelete 
                 resourceName="cabins"
                 onConfirm={() => mutate(id)}
               />
             </Modal.Window>
+
+            </Menus.Menu>
+            
+            
+            
           </Modal>
+
         </div>
-      </TableRow>
+      </Table.Row>
     </>
   )
 }
