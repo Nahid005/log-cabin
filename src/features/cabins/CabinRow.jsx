@@ -71,34 +71,29 @@ function CabinRow({cabin}) {
                 <Menus.Button icon={<FaRegCopy />} onClick={handleDuplicate}>
                   Duplicate
                 </Menus.Button>
-                
+
                 <Modal.Open opens="edit">
                   <Menus.Button icon={<CiEdit/>}>Edit</Menus.Button>
                 </Modal.Open>
-
+                
                 <Modal.Open opens="delete">
                   <Menus.Button icon={<MdDeleteOutline/>}>Delete</Menus.Button>
                 </Modal.Open>
 
               </Menus.List>
 
+              <Modal.Window name="edit">
+                <CreateCabinForm cabinData={cabin} />
+              </Modal.Window>
 
-<Modal.Window name="edit">
-              <CreateCabinForm cabinData={cabin} />
-            </Modal.Window>
-<Modal.Window name="delete">
-              <ConfirmDelete 
-                resourceName="cabins"
-                onConfirm={() => mutate(id)}
-              />
-            </Modal.Window>
-
+              <Modal.Window name="delete">
+                <ConfirmDelete 
+                  resourceName="cabins"
+                  onConfirm={() => mutate(id)}
+                />
+              </Modal.Window>
             </Menus.Menu>
-            
-            
-            
           </Modal>
-
         </div>
       </Table.Row>
     </>
