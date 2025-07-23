@@ -4,11 +4,17 @@ import Menus from "../../ui/Menus";
 import Empty from "../../ui/Empty";
 import { useBookings } from "./useBookings";
 import Spinner from "../../ui/Spinner";
+import Pagination from "../../ui/Pagination";
 
 function BookingTable() {
-  const {data: bookings, isLoading} = useBookings();
+  const {data, isLoading} = useBookings();
+
+  console.log(data)
 
   if(isLoading) return <Spinner />
+  const bookings = data.data;
+
+  
 
   if(!bookings.length) return <Empty resource="Booking" />
 
@@ -26,7 +32,11 @@ function BookingTable() {
         <Table.Body>
           {bookings.map(booking => <BookingRow key={booking.id} booking={booking} />)}
         </Table.Body>
+        <Table.Footer>
+          <Pagination  count={data.count}/>
+        </Table.Footer>
       </Table>
+
     </Menus>
   );
 }

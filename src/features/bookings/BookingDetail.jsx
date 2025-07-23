@@ -9,6 +9,9 @@ import Button from "../../ui/Button";
 import ButtonText from "../../ui/ButtonText";
 
 import { useMoveBack } from "../../hooks/useMoveBack";
+import useBooking from "./useBooking";
+import Spinner from "../../ui/Spinner";
+import { useNavigate } from "react-router-dom";
 
 const HeadingGroup = styled.div`
   display: flex;
@@ -17,10 +20,11 @@ const HeadingGroup = styled.div`
 `;
 
 function BookingDetail() {
-  const booking = {};
-  const status = "checked-in";
-
+  const {data: booking, isLoading} = useBooking();
+  const navigate = useNavigate();
   const moveBack = useMoveBack();
+
+  const status = "checked-in";
 
   const statusToTagName = {
     unconfirmed: "blue",
@@ -28,11 +32,13 @@ function BookingDetail() {
     "checked-out": "silver",
   };
 
+  if(!booking) return <Spinner /> 
+
   return (
     <>
       <Row type="horizontal">
         <HeadingGroup>
-          <Heading as="h1">Booking #X</Heading>
+          <Heading as="h1">Booking #{booking.id}</Heading>
           <Tag type={statusToTagName[status]}>{status.replace("-", " ")}</Tag>
         </HeadingGroup>
         <ButtonText onClick={moveBack}>&larr; Back</ButtonText>
@@ -41,6 +47,13 @@ function BookingDetail() {
       <BookingDataBox booking={booking} />
 
       <ButtonGroup>
+        {
+          status === 'unconfirmed' && (
+            <Button icon={<HiArrowDownOnSquare />} onClick={() => navigate(`/checkin/${bookingId}`)}>
+            See details
+          </Button>
+          )
+        }
         <Button variation="secondary" onClick={moveBack}>
           Back
         </Button>
